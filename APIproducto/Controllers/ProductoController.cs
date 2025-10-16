@@ -7,6 +7,7 @@ using System.Web.Http;
 using APIproducto.Models;
 using Dominio;
 using Negocio;
+using APIproducto.Models;
 
 namespace APIproducto.Controllers
 {
@@ -48,8 +49,21 @@ namespace APIproducto.Controllers
        
 
         // POST: api/Producto
-        public void Post([FromBody]string value)
+        public void Post([FromBody]ProductoDTO prod)
         {
+            ArticuloNegocio negocio = new ArticuloNegocio();
+            Articulo nuevo = new Articulo();
+
+            nuevo.codigoArticulo = prod.codigoArticulo;
+            nuevo.nombre = prod.nombre;
+            nuevo.Marca = new Marca { Id = prod.idMarca };
+            nuevo.tipo = new Categoria { Id = prod.idCategoria };
+            nuevo.descripcion = prod.descripcion;
+            nuevo.precio = prod.precio;
+            nuevo.UrlImagen = prod.UrlImagen;
+
+            negocio.agregarArticulo(nuevo);
+
         }
 
         // PUT: api/Producto/5
