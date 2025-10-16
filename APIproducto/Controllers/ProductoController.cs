@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Xml.Linq;
 using APIproducto.Models;
 using Dominio;
 using Negocio;
@@ -50,10 +51,24 @@ namespace APIproducto.Controllers
 
         // POST: api/Producto
 
-        public void Post([FromBody]ProductoDTO prod)
+        public HttpResponseMessage Post([FromBody]ProductoDTO prod)
 
         {
-            ArticuloNegocio negocio = new ArticuloNegocio();
+            var varnegocio = new ArticuloNegocio();
+            var MarcaNegocio = new MarcaNegocio();
+            var CategoriaNegocio = new CategoriaNegocio();
+
+            // Validar que existan la marca y la categoría
+            Marca marca = MarcaNegocio.listar().Find(x => x.Id == prod.idMarca);
+            Categoria categoria = CategoriaNegocio.listar().Find(x => x.Id == prod.idCategoria);
+
+            if (marca == null)
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "La Marca no existe.");
+
+            if (categoria == null)
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "La Categoria no existe.");
+
+          //  ArticuloNegocio negocio = new ArticuloNegocio();
             Articulo nuevo = new Articulo();
 
             nuevo.codigoArticulo = prod.codigoArticulo;
@@ -64,7 +79,9 @@ namespace APIproducto.Controllers
             nuevo.precio = prod.precio;
             nuevo.UrlImagen = prod.UrlImagen;
 
-            negocio.agregarArticulo(nuevo);
+            varnegocio.agregarArticulo(nuevo);
+
+            return Request.CreateResponse(HttpStatusCode.OK, "Artículo agregado correctamente.");
 
         }
 
