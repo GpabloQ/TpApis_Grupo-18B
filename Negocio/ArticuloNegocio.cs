@@ -198,8 +198,6 @@ namespace Negocio
             }
         }
 
-
-
         public void EliminarArticulo(int id) { 
             AccesoDatos datos = new AccesoDatos();
 
@@ -259,7 +257,6 @@ namespace Negocio
             }
         }
 
-
         public List<Articulo> filtrarPorPrecio(decimal precioMax)
         {
             List<Articulo> lista = new List<Articulo>();
@@ -309,8 +306,6 @@ namespace Negocio
             {
                 datos.cerrarConexion();
             }
-        }
-
-
+        }        
     }
 }

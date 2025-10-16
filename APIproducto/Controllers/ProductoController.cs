@@ -4,6 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using APIproducto.Models;
+using Dominio;
+using Negocio;
 
 namespace APIproducto.Controllers
 {
@@ -16,10 +19,13 @@ namespace APIproducto.Controllers
         }
 
         // GET: api/Producto/5
-        public string Get(int id)
+        public Articulo Get(int id)
         {
-            return "value";
+            ArticuloNegocio negocio = new ArticuloNegocio();
+            List<Articulo> lista = negocio.listar();
+            return lista.Find(x => x.id == id);
         }
+
 
         // POST: api/Producto
         public void Post([FromBody]string value)
@@ -34,6 +40,7 @@ namespace APIproducto.Controllers
         // DELETE: api/Producto/5
         public void Delete(int id)
         {
+            
         }
     }
 }
