@@ -13,16 +13,18 @@ namespace APIproducto.Controllers
     public class ProductoController : ApiController
     {
         // GET: api/Producto
-        public IEnumerable<string> Get()
+        public IEnumerable<Articulo> Get()
         {
-            return new string[] { "value1", "value2" };
+            ArticuloNegocio negocio = new ArticuloNegocio();
+
+            return negocio.listar2();
         }
 
         // GET: api/Producto/5
         public Articulo Get(int id)
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
-            List<Articulo> lista = negocio.listar();
+            List<Articulo> lista = negocio.listar2();
             return lista.Find(x => x.id == id);
         }
         // GET: api/Producto/Buscar/nombre

@@ -31,6 +31,12 @@ namespace Dominio
         [DisplayName("PRECIO")]
         public decimal precio { get; set; }
         public string UrlImagen { get; set; }
+        public List<string> ListaUrls { get; set; }
+
+        public Articulo()
+        {
+            ListaUrls = new List<string>();
+        }
 
     }
 }

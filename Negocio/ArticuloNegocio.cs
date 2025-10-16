@@ -59,6 +59,65 @@ namespace Negocio
             }
         }
 
+        public List<Articulo> listar2()
+        {
+
+            List<Articulo> lista = new List<Articulo>();
+            AccesoDatos datos = new AccesoDatos();
+
+            try
+            {
+                datos.setearConsulta("SELECT\r\nA.Id, \r\n    A.Codigo, \r\n    A.Nombre, \r\n    M.Descripcion AS Marca,\r\n    C.Descripcion AS Tipo, \r\n    A.Descripcion, \r\n    A.Precio, \r\n    I.ImagenUrl AS Imagen, \r\n    A.IdCategoria,\r\n    A.IdMarca\r\nFROM ARTICULOS A\r\nJOIN MARCAS M ON M.Id = A.IdMarca\r\nJOIN CATEGORIAS C ON C.Id = A.IdCategoria\r\nJOIN IMAGENES I ON I.IdArticulo = A.Id");
+                datos.ejecutarLectura();
+
+                while (datos.Lector.Read())
+                {
+                    int idArticulo = (int)datos.Lector["Id"];
+
+                    // Buscar si ya existe el artículo en la lista
+                    Articulo aux = lista.FirstOrDefault(a => a.id == idArticulo);
+
+                    if (aux == null)
+                    {
+                        aux = new Articulo();
+                        aux.id = idArticulo;
+                        aux.codigoArticulo = (string)datos.Lector["Codigo"];
+                        aux.nombre = (string)datos.Lector["Nombre"];
+
+                        aux.Marca = new Marca();
+                        aux.Marca.Id = (int)datos.Lector["IdMarca"];
+                        aux.Marca.Descripcion = (string)datos.Lector["Marca"];
+
+                        aux.tipo = new Categoria();
+                        aux.tipo.Id = (int)datos.Lector["IdCategoria"];
+                        aux.tipo.Descripcion = (string)datos.Lector["Tipo"];
+
+                        if (!(datos.Lector["Descripcion"] is DBNull))
+                            aux.descripcion = (string)datos.Lector["Descripcion"];
+
+                        aux.precio = (decimal)datos.Lector["Precio"];
+                        aux.ListaUrls = new List<string>();
+
+                        lista.Add(aux);
+                    }
+
+                    // Agregar imagen a la lista
+                    if (!(datos.Lector["Imagen"] is DBNull))
+                        aux.ListaUrls.Add((string)datos.Lector["Imagen"]);
+                }
+
+                return lista;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                datos.cerrarConexion();
+            }
+        }
+
         public List<Articulo> listarUnaSolaImagen()
         {
             List<Articulo> lista = new List<Articulo>();
