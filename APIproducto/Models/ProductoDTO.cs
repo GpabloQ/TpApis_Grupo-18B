@@ -15,7 +15,7 @@ namespace APIproducto.Models
         public int idCategoria { get; set; }
         public string descripcion { get; set; }
         public decimal precio { get; set; }
-        public string UrlImagen { get; set; }
-        
+        public string UrlImagen { get; set; }       
+
     }
 }

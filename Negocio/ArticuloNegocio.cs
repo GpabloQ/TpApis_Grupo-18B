@@ -12,11 +12,12 @@ namespace Negocio
     public class ArticuloNegocio
     {
 
-        public List<Articulo> listar() { 
-            
-            List <Articulo>lista = new List<Articulo>();
+        public List<Articulo> listar()
+        {
+
+            List<Articulo> lista = new List<Articulo>();
             AccesoDatos datos = new AccesoDatos();
-            
+
             try
             {
                 datos.setearConsulta("SELECT A.Id, A.Codigo, A.Nombre, M.Descripcion AS Marca, C.Descripcion AS Tipo, A.Descripcion, A.Precio, I.ImagenUrl AS Imagen,A.IdCategoria,A.IdMarca FROM ARTICULOS A LEFT JOIN IMAGENES I ON I.IdArticulo = A.Id JOIN MARCAS M ON M.Id = A.IdMarca JOIN CATEGORIAS C ON C.Id = A.IdCategoria");
@@ -29,20 +30,20 @@ namespace Negocio
                     aux.id = (int)datos.Lector["Id"];
                     aux.codigoArticulo = (string)datos.Lector["Codigo"];
                     aux.nombre = (string)datos.Lector["Nombre"];
-                    
+
                     aux.Marca = new Marca();
                     aux.Marca.Id = (int)datos.Lector["IdMarca"];
                     aux.Marca.Descripcion = (string)datos.Lector["Marca"];
                     aux.tipo = new Categoria();
                     aux.tipo.Id = (int)datos.Lector["IdCategoria"];
                     aux.tipo.Descripcion = (string)datos.Lector["Tipo"];
-                    
+
                     if (!(datos.Lector["Descripcion"] is DBNull))
-                    aux.descripcion = (string)datos.Lector["Descripcion"];
+                        aux.descripcion = (string)datos.Lector["Descripcion"];
                     aux.precio = (decimal)datos.Lector["Precio"];
-                    
+
                     if (!(datos.Lector["Imagen"] is DBNull))
-                    aux.UrlImagen = (string)datos.Lector["Imagen"];
+                        aux.UrlImagen = (string)datos.Lector["Imagen"];
 
                     lista.Add(aux);
                 }
@@ -53,9 +54,9 @@ namespace Negocio
             {
                 throw ex;
             }
-            finally 
+            finally
             {
-                datos.cerrarConexion();    
+                datos.cerrarConexion();
             }
         }
 
@@ -185,7 +186,8 @@ namespace Negocio
             }
         }
 
-        public void agregarArticulo(Articulo nuevo) {
+        public void agregarArticulo(Articulo nuevo)
+        {
 
             AccesoDatos datos = new AccesoDatos();
             try
@@ -197,7 +199,7 @@ namespace Negocio
                 datos.setearParametro("@IdCategoria", nuevo.tipo.Id);
                 datos.setearParametro("@Descripcion", nuevo.descripcion);
                 datos.setearParametro("@Precio", nuevo.precio);
-                datos.setearParametro("@imagen",nuevo.UrlImagen);
+                datos.setearParametro("@imagen", nuevo.UrlImagen);
 
                 datos.ejecutarAccion();
 
@@ -207,13 +209,57 @@ namespace Negocio
 
                 throw ex;
             }
-            finally {
+            finally
+            {
                 datos.cerrarConexion();
             }
 
 
 
         }
+
+        public void modificarProducto(Articulo articulo)
+        {
+            AccesoDatos datos = new AccesoDatos();
+
+            try
+            {
+                // Primero actualizamos los datos del artículo
+                datos.setearConsulta(@"
+            UPDATE ARTICULOS 
+            SET Codigo = @cod, Nombre = @nom, IdMarca = @idmarca, IdCategoria = @idcategoria, 
+                Descripcion = @desc, Precio = @precio, 
+            WHERE Id = @Id;
+            
+             INSERT INTO IMAGENES (ImagenUrl,IdArticulo) 
+             VALUES (@imagen, SCOPE_IDENTITY())
+          
+        ");
+
+                datos.setearParametro("@cod", articulo.codigoArticulo);
+                datos.setearParametro("@nom", articulo.nombre);
+                datos.setearParametro("@idmarca", articulo.Marca.Id);
+                datos.setearParametro("@idcategoria", articulo.tipo.Id);
+                datos.setearParametro("@desc", articulo.descripcion);
+                datos.setearParametro("@precio", articulo.precio);
+                datos.setearParametro("@imagen", articulo.UrlImagen);
+                datos.setearParametro("@Id", articulo.id);
+
+
+
+                datos.ejecutarAccion();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al modificar el artículo: " + ex.Message);
+            }
+            finally
+            {
+                datos.cerrarConexion();
+            }
+        }
+
+
 
         public void modificarArticulo(Articulo articulo, string urlVieja, string urlNueva)
         {
@@ -257,13 +303,14 @@ namespace Negocio
             }
         }
 
-        public void EliminarArticulo(int id) { 
+        public void EliminarArticulo(int id)
+        {
             AccesoDatos datos = new AccesoDatos();
 
             try
             {
                 datos.setearConsulta("delete from ARTICULOS where id = @id");
-                datos.setearParametro("@id",id);
+                datos.setearParametro("@id", id);
                 datos.ejecutarAccion();
 
             }
@@ -285,7 +332,7 @@ namespace Negocio
                 datos.setearParametro("@urlImagen", urlImagen);
                 datos.ejecutarAccion();
             }
-            catch (Exception )
+            catch (Exception)
             {
                 throw new Exception("Error al eliminar la imagen.");
             }
@@ -316,6 +363,25 @@ namespace Negocio
             }
         }
 
+        public bool Existe(int id)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                datos.setearConsulta("select id as IdA from ARTICULOS where Id = @id");
+                datos.setearParametro("@id", id);
+                datos.ejecutarLectura();
+
+                return datos.Lector.Read();
+            }
+            catch (Exception)
+            {
+                datos.cerrarConexion();
+                return false;
+            }
+
+        }
+
         public List<Articulo> filtrarPorPrecio(decimal precioMax)
         {
             List<Articulo> lista = new List<Articulo>();
@@ -324,7 +390,7 @@ namespace Negocio
             try
             {
                 datos.setearConsulta("SELECT A.Id, A.Codigo, A.Nombre, M.Descripcion AS Marca, C.Descripcion AS Tipo, A.Descripcion, A.Precio, I.ImagenUrl AS Imagen,A.IdCategoria,A.IdMarca FROM ARTICULOS A LEFT JOIN IMAGENES I ON I.IdArticulo = A.Id JOIN MARCAS M ON M.Id = A.IdMarca JOIN CATEGORIAS C ON C.Id = A.IdCategoria");
-               
+
 
                 datos.setearParametro("@PrecioMax", precioMax);
                 datos.ejecutarLectura();

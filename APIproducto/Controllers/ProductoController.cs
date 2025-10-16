@@ -7,7 +7,7 @@ using System.Web.Http;
 using APIproducto.Models;
 using Dominio;
 using Negocio;
-using APIproducto.Models;
+
 
 namespace APIproducto.Controllers
 {
@@ -49,7 +49,9 @@ namespace APIproducto.Controllers
        
 
         // POST: api/Producto
+
         public void Post([FromBody]ProductoDTO prod)
+
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
             Articulo nuevo = new Articulo();
@@ -67,8 +69,54 @@ namespace APIproducto.Controllers
         }
 
         // PUT: api/Producto/5
-        public void Put(int id, [FromBody]string value)
+        public HttpResponseMessage Put(int id, [FromBody] ProductoDTO producto)
+
         {
+            if (producto == null)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Body requerido.");
+
+            ArticuloNegocio negocio = new ArticuloNegocio();
+            MarcaNegocio marcaNegocio = new MarcaNegocio();
+            CategoriaNegocio categoriaNegocio = new CategoriaNegocio();
+            
+            // Validar existencia de la Marca y la Categoría
+            Marca marca = marcaNegocio.listar().Find(x => x.Id == producto.idMarca);
+            Categoria categoria = categoriaNegocio.listar().Find(x => x.Id == producto.idCategoria);
+
+            if (marca == null)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "La marca seleccionada no existe.");
+
+            if (categoria == null)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "La categoría seleccionada no existe.");
+
+
+            try
+            {
+          
+                Articulo modificar = new Articulo();
+
+                modificar.codigoArticulo = producto.codigoArticulo;
+                modificar.nombre = producto.nombre;
+                modificar.Marca = new Marca { Id = producto.idMarca };
+                modificar.tipo = new Categoria { Id = producto.idCategoria };
+                modificar.descripcion = producto.descripcion;
+                modificar.UrlImagen = producto.UrlImagen;
+                modificar.precio = producto.precio;
+
+
+                modificar.id = id;
+
+                negocio.modificarProducto(modificar);
+                return Request.CreateResponse(HttpStatusCode.NoContent);
+
+            }
+            catch (Exception)
+            {
+
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Ocurrió un error inesperado.");
+            }
+
+
         }
 
         // DELETE: api/Producto/5
