@@ -306,6 +306,67 @@ namespace Negocio
             {
                 datos.cerrarConexion();
             }
-        }        
+        }
+
+        public List<Articulo> BuscarProducto(string nombre)
+        {
+            List<Articulo> lista = new List<Articulo>();
+            AccesoDatos datos = new AccesoDatos();
+
+            try
+            {
+                datos.setearConsulta(@"
+                    SELECT A.Id, A.Codigo, A.Nombre, 
+                           M.Descripcion AS Marca, 
+                           C.Descripcion AS Tipo, 
+                           A.Descripcion, 
+                           A.Precio, 
+                           (SELECT TOP 1 I.ImagenUrl 
+                            FROM IMAGENES I 
+                            WHERE I.IdArticulo = A.Id) AS Imagen, 
+                           A.IdCategoria, 
+                           A.IdMarca
+                    FROM ARTICULOS A
+                    JOIN MARCAS M ON M.Id = A.IdMarca
+                    JOIN CATEGORIAS C ON C.Id = A.IdCategoria
+                    WHERE A.Nombre LIKE '%' + @nombre + '%'
+                    ");
+
+                datos.setearParametro("@nombre", nombre);
+                datos.ejecutarLectura();
+
+                while (datos.Lector.Read())
+                {
+                    Articulo aux = new Articulo
+                    {
+                        id = (int)datos.Lector["Id"],
+                        codigoArticulo = (string)datos.Lector["Codigo"],
+                        nombre = (string)datos.Lector["Nombre"],
+                        descripcion = datos.Lector["Descripcion"] is DBNull ? "" : (string)datos.Lector["Descripcion"],
+                        precio = (decimal)datos.Lector["Precio"],
+                        UrlImagen = datos.Lector["Imagen"] is DBNull ? null : (string)datos.Lector["Imagen"],
+                        Marca = new Marca
+                        {
+                            Id = (int)datos.Lector["IdMarca"],
+                            Descripcion = (string)datos.Lector["Marca"]
+                        },
+                        tipo = new Categoria
+                        {
+                            Id = (int)datos.Lector["IdCategoria"],
+                            Descripcion = (string)datos.Lector["Tipo"]
+                        }
+                    };
+
+                    lista.Add(aux);
+                }
+
+                return lista;
+            }
+            finally
+            {
+                datos.cerrarConexion();
+            }
+        }
+
     }
 }

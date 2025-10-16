@@ -25,7 +25,25 @@ namespace APIproducto.Controllers
             List<Articulo> lista = negocio.listar();
             return lista.Find(x => x.id == id);
         }
+        // GET: api/Producto/Buscar/nombre
 
+        [HttpGet]
+        [Route("api/Producto/{nombre}")]
+        public IHttpActionResult Buscar(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre))
+            {
+                return BadRequest("El parámetro 'nombre' es requerido.");
+            }
+            ArticuloNegocio negocio = new ArticuloNegocio();
+            var articulos = negocio.BuscarProducto(nombre);
+            if (articulos == null || !articulos.Any())
+            {
+                return NotFound();
+            }
+            return Ok(articulos);
+        }
+       
 
         // POST: api/Producto
         public void Post([FromBody]string value)
