@@ -442,6 +442,10 @@ namespace Negocio
             List<Articulo> lista = new List<Articulo>();
             AccesoDatos datos = new AccesoDatos();
 
+            if (string.IsNullOrWhiteSpace(nombre))
+                throw new Exception("Debe ingresar un nombre para buscar.");
+           
+
             try
             {
                 if (string.IsNullOrWhiteSpace(nombre))
@@ -502,6 +506,8 @@ namespace Negocio
 
                     lista.Add(articulo);
                 }
+                if (lista.Count == 0)
+                    throw new Exception("No se encontraron artículos con ese nombre.");
             }
             catch (Exception ex)
             {
@@ -510,7 +516,6 @@ namespace Negocio
 
             return lista;
         }
-
 
         public Articulo BuscarPorId(int id)
         {

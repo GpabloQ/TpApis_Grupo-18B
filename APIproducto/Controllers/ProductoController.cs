@@ -29,9 +29,12 @@ namespace APIproducto.Controllers
         [Route("api/Producto/{id}")]
         public IHttpActionResult Get(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("El ID no admite valores negativos o cero");
+            }
             ArticuloNegocio negocio = new ArticuloNegocio();
             var articulo = negocio.BuscarPorId(id);
-
             if (articulo == null)
             {
                 return NotFound();
@@ -39,24 +42,37 @@ namespace APIproducto.Controllers
             return Ok(articulo);
         }
 
-
         // GET: api/Producto/Buscar/nombre
         [HttpGet]
         [Route("api/Producto/BuscarPorNombre/{nombre}")]
         public IHttpActionResult Buscar(string nombre)
         {
-            if (string.IsNullOrEmpty(nombre))
-                return BadRequest("El parámetro 'nombre' es requerido.");
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return BadRequest("Debe ingresar un nombre para buscar.");
+            }
 
-            ArticuloNegocio negocio = new ArticuloNegocio();
-            var articulos = negocio.BuscarPorNombre(nombre);
+            try
+            {
+                ArticuloNegocio negocio = new ArticuloNegocio();
+                var lista = negocio.BuscarPorNombre(nombre);
 
-            if (articulos == null || !articulos.Any())
-                return NotFound();
+                if (lista == null || lista.Count == 0)
+                {
+                    return NotFound();
+                }
 
-            return Ok(articulos);
+                return Ok(lista); 
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(new Exception("Ocurrió un error al buscar los artículos.", ex));
+            }
         }
-
 
         // POST: api/Producto
         [HttpPost]
