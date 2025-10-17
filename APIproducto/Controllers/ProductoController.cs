@@ -70,6 +70,12 @@ namespace APIproducto.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "El precio debe ser un número positivo.");
             }
+            if (string.IsNullOrWhiteSpace(prod.codigoArticulo) ||
+    string.IsNullOrWhiteSpace(prod.nombre) ||
+    string.IsNullOrWhiteSpace(prod.descripcion))
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Todos los campos obligatorios deben estar completos.");
+            }
 
             // Validar que existan la marca y la categoría
             Marca marca = MarcaNegocio.listar().Find(x => x.Id == prod.idMarca);
@@ -110,6 +116,12 @@ namespace APIproducto.Controllers
             if (producto.precio <= 0)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "El precio debe ser un número positivo.");
+            }
+            if (string.IsNullOrWhiteSpace(producto.codigoArticulo) ||
+    string.IsNullOrWhiteSpace(producto.nombre) ||
+    string.IsNullOrWhiteSpace(producto.descripcion))
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Todos los campos obligatorios deben estar completos.");
             }
             ArticuloNegocio negocio = new ArticuloNegocio();
             MarcaNegocio marcaNegocio = new MarcaNegocio();
