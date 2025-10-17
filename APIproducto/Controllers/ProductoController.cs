@@ -47,10 +47,10 @@ namespace APIproducto.Controllers
             }
             return Ok(articulos);
         }
-       
+
 
         // POST: api/Producto
-
+       
         public HttpResponseMessage Post([FromBody]ProductoDTO prod)
 
         {
@@ -86,6 +86,8 @@ namespace APIproducto.Controllers
         }
 
         // PUT: api/Producto/5
+        [HttpPut]
+        [Route("api/Producto/{id}")]
         public HttpResponseMessage Put(int id, [FromBody] ProductoDTO producto)
 
         {
@@ -112,19 +114,23 @@ namespace APIproducto.Controllers
           
                 Articulo modificar = new Articulo();
 
+                modificar.id = id;
                 modificar.codigoArticulo = producto.codigoArticulo;
                 modificar.nombre = producto.nombre;
                 modificar.Marca = new Marca { Id = producto.idMarca };
                 modificar.tipo = new Categoria { Id = producto.idCategoria };
                 modificar.descripcion = producto.descripcion;
-                modificar.UrlImagen = producto.UrlImagen;
                 modificar.precio = producto.precio;
+                modificar.UrlImagen = producto.UrlImagen;
 
-
-                modificar.id = id;
 
                 negocio.modificarProducto(modificar);
-                return Request.CreateResponse(HttpStatusCode.NoContent);
+                
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    mensaje = "Producto actualizado correctamente.",
+                    productoActualizado = modificar
+                });
 
             }
             catch (Exception)

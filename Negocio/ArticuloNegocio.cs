@@ -225,16 +225,9 @@ namespace Negocio
             try
             {
                 // Primero actualizamos los datos del artículo
-                datos.setearConsulta(@"
-            UPDATE ARTICULOS 
-            SET Codigo = @cod, Nombre = @nom, IdMarca = @idmarca, IdCategoria = @idcategoria, 
-                Descripcion = @desc, Precio = @precio, 
-            WHERE Id = @Id;
-            
-             INSERT INTO IMAGENES (ImagenUrl,IdArticulo) 
-             VALUES (@imagen, SCOPE_IDENTITY())
-          
-        ");
+                datos.setearConsulta(@"UPDATE ARTICULOS SET Codigo = @cod, Nombre = @nom, IdMarca = @idmarca, IdCategoria = @idcategoria, 
+                Descripcion = @desc, Precio = @precio
+                WHERE Id = @Id");
 
                 datos.setearParametro("@cod", articulo.codigoArticulo);
                 datos.setearParametro("@nom", articulo.nombre);
@@ -242,12 +235,25 @@ namespace Negocio
                 datos.setearParametro("@idcategoria", articulo.tipo.Id);
                 datos.setearParametro("@desc", articulo.descripcion);
                 datos.setearParametro("@precio", articulo.precio);
-                datos.setearParametro("@imagen", articulo.UrlImagen);
                 datos.setearParametro("@Id", articulo.id);
 
-
-
                 datos.ejecutarAccion();
+                
+                if (!string.IsNullOrEmpty(articulo.UrlImagen))
+                {
+                    datos = new AccesoDatos();
+
+                    datos.setearConsulta(@"IF EXISTS (SELECT 1 FROM IMAGENES WHERE IdArticulo = @Id)
+                    UPDATE IMAGENES SET ImagenUrl = @imagen WHERE IdArticulo = @Id
+                    ELSE
+                    INSERT INTO IMAGENES (ImagenUrl, IdArticulo) VALUES (@imagen, @Id) ");
+
+                    datos.setearParametro("@imagen", articulo.UrlImagen);
+                    datos.setearParametro("@Id", articulo.id);
+
+                    datos.ejecutarAccion();
+                }
+
             }
             catch (Exception ex)
             {
