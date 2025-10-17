@@ -27,28 +27,33 @@ namespace APIproducto.Controllers
         // GET: api/Producto/5
         [HttpGet]
         [Route("api/Producto/{id}")]
-        public Articulo Get(int id)
+        public IHttpActionResult Get(int id)
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
-            List<Articulo> lista = negocio.listar2();
-            return lista.Find(x => x.id == id);
-        }
-        // GET: api/Producto/Buscar/nombre
+            var articulo = negocio.BuscarPorId(id);
 
-        [HttpGet]
-        [Route("api/Producto/{nombre}")]
-        public IHttpActionResult Buscar(string nombre)
-        {
-            if (string.IsNullOrEmpty(nombre))
-            {
-                return BadRequest("El parámetro 'nombre' es requerido.");
-            }
-            ArticuloNegocio negocio = new ArticuloNegocio();
-            var articulos = negocio.BuscarProducto(nombre);
-            if (articulos == null || !articulos.Any())
+            if (articulo == null)
             {
                 return NotFound();
             }
+            return Ok(articulo);
+        }
+
+
+        // GET: api/Producto/Buscar/nombre
+        [HttpGet]
+        [Route("api/Producto/BuscarPorNombre/{nombre}")]
+        public IHttpActionResult Buscar(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre))
+                return BadRequest("El parámetro 'nombre' es requerido.");
+
+            ArticuloNegocio negocio = new ArticuloNegocio();
+            var articulos = negocio.BuscarPorNombre(nombre);
+
+            if (articulos == null || !articulos.Any())
+                return NotFound();
+
             return Ok(articulos);
         }
 
@@ -118,8 +123,8 @@ namespace APIproducto.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "El precio debe ser un número positivo.");
             }
             if (string.IsNullOrWhiteSpace(producto.codigoArticulo) ||
-    string.IsNullOrWhiteSpace(producto.nombre) ||
-    string.IsNullOrWhiteSpace(producto.descripcion))
+                string.IsNullOrWhiteSpace(producto.nombre) ||
+                string.IsNullOrWhiteSpace(producto.descripcion))
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Todos los campos obligatorios deben estar completos.");
             }

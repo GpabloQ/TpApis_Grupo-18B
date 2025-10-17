@@ -265,8 +265,6 @@ namespace Negocio
             }
         }
 
-
-
         public void modificarArticulo(Articulo articulo, string urlVieja, string urlNueva)
         {
             AccesoDatos datos = new AccesoDatos();
@@ -439,43 +437,113 @@ namespace Negocio
             }
         }
 
-        public List<Articulo> BuscarProducto(string nombre)
+        public List<Articulo> BuscarPorNombre(string nombre)
         {
             List<Articulo> lista = new List<Articulo>();
             AccesoDatos datos = new AccesoDatos();
 
             try
             {
+                if (string.IsNullOrWhiteSpace(nombre))
+                    throw new ArgumentException("El nombre no puede estar vacío.");
+                
                 datos.setearConsulta(@"
-                    SELECT A.Id, A.Codigo, A.Nombre, 
-                           M.Descripcion AS Marca, 
-                           C.Descripcion AS Tipo, 
-                           A.Descripcion, 
-                           A.Precio, 
-                           (SELECT TOP 1 I.ImagenUrl 
-                            FROM IMAGENES I 
-                            WHERE I.IdArticulo = A.Id) AS Imagen, 
-                           A.IdCategoria, 
-                           A.IdMarca
-                    FROM ARTICULOS A
-                    JOIN MARCAS M ON M.Id = A.IdMarca
-                    JOIN CATEGORIAS C ON C.Id = A.IdCategoria
-                    WHERE A.Nombre LIKE '%' + @nombre + '%'
-                    ");
+            SELECT A.Id, A.Codigo, A.Nombre, 
+                   M.Descripcion AS Marca, 
+                   C.Descripcion AS Tipo, 
+                   A.Descripcion, 
+                   A.Precio, 
+                   A.IdCategoria, 
+                   A.IdMarca
+            FROM ARTICULOS A
+            JOIN MARCAS M ON M.Id = A.IdMarca
+            JOIN CATEGORIAS C ON C.Id = A.IdCategoria
+            WHERE A.Nombre LIKE '%' + @nombre + '%'
+        ");
 
                 datos.setearParametro("@nombre", nombre);
                 datos.ejecutarLectura();
 
                 while (datos.Lector.Read())
                 {
-                    Articulo aux = new Articulo
+                    Articulo articulo = new Articulo
                     {
                         id = (int)datos.Lector["Id"],
                         codigoArticulo = (string)datos.Lector["Codigo"],
                         nombre = (string)datos.Lector["Nombre"],
                         descripcion = datos.Lector["Descripcion"] is DBNull ? "" : (string)datos.Lector["Descripcion"],
                         precio = (decimal)datos.Lector["Precio"],
-                        UrlImagen = datos.Lector["Imagen"] is DBNull ? null : (string)datos.Lector["Imagen"],
+                        Marca = new Marca
+                        {
+                            Id = (int)datos.Lector["IdMarca"],
+                            Descripcion = (string)datos.Lector["Marca"]
+                        },
+                        tipo = new Categoria
+                        {
+                            Id = (int)datos.Lector["IdCategoria"],
+                            Descripcion = (string)datos.Lector["Tipo"]
+                        },
+                        ListaUrls = new List<string>()
+                    };
+
+                    // Ahora traemos las imágenes de ese artículo
+                    AccesoDatos datosImg = new AccesoDatos();
+                    datosImg.setearConsulta("SELECT ImagenUrl FROM IMAGENES WHERE IdArticulo = @id");
+                    datosImg.setearParametro("@id", articulo.id);
+                    datosImg.ejecutarLectura();
+
+                    while (datosImg.Lector.Read())
+                    {
+                        if (!(datosImg.Lector["ImagenUrl"] is DBNull))
+                            articulo.ListaUrls.Add((string)datosImg.Lector["ImagenUrl"]);
+                    }
+
+                    articulo.UrlImagen = articulo.ListaUrls.FirstOrDefault();
+
+                    lista.Add(articulo);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return lista;
+        }
+
+
+        public Articulo BuscarPorId(int id)
+        {
+            Articulo articulo = null;
+
+
+            AccesoDatos datos = new AccesoDatos();
+            {
+                datos.setearConsulta(@"
+            SELECT A.Id, A.Codigo, A.Nombre, 
+                   M.Descripcion AS Marca, 
+                   C.Descripcion AS Tipo, 
+                   A.Descripcion, 
+                   A.Precio, 
+                   A.IdCategoria, 
+                   A.IdMarca
+            FROM ARTICULOS A
+            JOIN MARCAS M ON M.Id = A.IdMarca
+            JOIN CATEGORIAS C ON C.Id = A.IdCategoria
+            WHERE A.Id = @id
+        ");
+                datos.setearParametro("@id", id);
+                datos.ejecutarLectura();
+
+                if (datos.Lector.Read())
+                {
+                    articulo = new Articulo
+                    {
+                        id = (int)datos.Lector["Id"],
+                        codigoArticulo = (string)datos.Lector["Codigo"],
+                        nombre = (string)datos.Lector["Nombre"],
+                        descripcion = datos.Lector["Descripcion"] is DBNull ? "" : (string)datos.Lector["Descripcion"],
+                        precio = (decimal)datos.Lector["Precio"],
                         Marca = new Marca
                         {
                             Id = (int)datos.Lector["IdMarca"],
@@ -487,16 +555,30 @@ namespace Negocio
                             Descripcion = (string)datos.Lector["Tipo"]
                         }
                     };
+                }
+            }
 
-                    lista.Add(aux);
+            if (articulo != null)
+            {
+
+                AccesoDatos datosImg = new AccesoDatos();
+                {
+                    datosImg.setearConsulta("SELECT ImagenUrl FROM IMAGENES WHERE IdArticulo = @id");
+                    datosImg.setearParametro("@id", id);
+                    datosImg.ejecutarLectura();
+
+                    while (datosImg.Lector.Read())
+                    {
+                        if (!(datosImg.Lector["ImagenUrl"] is DBNull))
+                            articulo.ListaUrls.Add((string)datosImg.Lector["ImagenUrl"]);
+                    }
                 }
 
-                return lista;
+
+                articulo.UrlImagen = articulo.ListaUrls.FirstOrDefault();
             }
-            finally
-            {
-                datos.cerrarConexion();
-            }
+
+            return articulo;
         }
 
     }
