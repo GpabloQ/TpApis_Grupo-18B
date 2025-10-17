@@ -15,6 +15,8 @@ namespace APIproducto.Controllers
     public class ProductoController : ApiController
     {
         // GET: api/Producto
+        [HttpGet]
+        [Route("api/Producto/")]
         public IEnumerable<Articulo> Get()
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
@@ -23,6 +25,8 @@ namespace APIproducto.Controllers
         }
 
         // GET: api/Producto/5
+        [HttpGet]
+        [Route("api/Producto/{id}")]
         public Articulo Get(int id)
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
@@ -50,13 +54,22 @@ namespace APIproducto.Controllers
 
 
         // POST: api/Producto
-       
+        [HttpPost]
+        [Route("api/Producto/")]
         public HttpResponseMessage Post([FromBody]ProductoDTO prod)
 
         {
             var varnegocio = new ArticuloNegocio();
             var MarcaNegocio = new MarcaNegocio();
             var CategoriaNegocio = new CategoriaNegocio();
+
+            if (prod == null)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Body requerido.");
+            
+            if (prod.precio <= 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "El precio debe ser un número positivo.");
+            }
 
             // Validar que existan la marca y la categoría
             Marca marca = MarcaNegocio.listar().Find(x => x.Id == prod.idMarca);
@@ -94,6 +107,10 @@ namespace APIproducto.Controllers
             if (producto == null)
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Body requerido.");
 
+            if (producto.precio <= 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "El precio debe ser un número positivo.");
+            }
             ArticuloNegocio negocio = new ArticuloNegocio();
             MarcaNegocio marcaNegocio = new MarcaNegocio();
             CategoriaNegocio categoriaNegocio = new CategoriaNegocio();
@@ -143,10 +160,14 @@ namespace APIproducto.Controllers
         }
 
         // DELETE: api/Producto/5
-        public void Delete(int id)
+        [HttpDelete]
+        [Route("api/Producto/{id}")]
+        public HttpResponseMessage Delete(int id)
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
             negocio.EliminarArticulo(id);
+            return Request.CreateResponse(HttpStatusCode.InternalServerError, "Artículo eliminado.");
+
         }
     }
 }
