@@ -165,9 +165,14 @@ namespace APIproducto.Controllers
         public HttpResponseMessage Delete(int id)
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
-            negocio.EliminarArticulo(id);
-            return Request.CreateResponse(HttpStatusCode.InternalServerError, "Artículo eliminado.");
+            // Validar que exista el id articulo
+            Articulo articulo = negocio.listar().Find(x => x.id == id);
+           
+            if (articulo == null)
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "El id artículo no es válido.");
 
+            negocio.EliminarArticulo(id);
+            return Request.CreateResponse(HttpStatusCode.OK, "Artículo eliminado correctamente.");
         }
     }
 }
